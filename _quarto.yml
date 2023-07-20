@@ -1,0 +1,33 @@
+project:
+  type: website
+
+website:
+  title: "Modelos Lineares"
+  navbar:
+    background: primary
+    search: true
+    left:
+      - href: index.qmd
+        text: Prova 3
+    right: 
+      - icon: github
+        href: https://github.com/cesar-galvao/modelos_lineares
+    body-footer: "César A. Galvão, 2022"
+
+
+format:
+  html:
+    theme: flatly
+    css: styles.css
+    toc: true
+    toc-title: Conteúdo
+    html-math-method: katex
+    code-overflow: wrap
+    code-copy: true
+
+
+execute:
+  freeze: auto
+
+
+
