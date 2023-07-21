@@ -49,7 +49,7 @@ envelope_LR <- function(fit, OLS=T, main.title = "Envelope", faixa.fixed = NULL,
   if(is.vector(faixa.fixed)) faixa <- faixa.fixed
   if(is.vector(labels.fixed)) labels <- labels.fixed
   par(mar=c(5.0,5.0,4.0,2.0))
-  v <- qqnorm(res, main=main.title, xlab="Normal quantiles", ylab="Studentized Residuals", ylim=faixa, pch=16, cex=1.5, cex.lab=2.0, cex.axis=1.5, cex.main=2.0)
+  v <- qqnorm(res, main=main.title, xlab="Quantis da Normal", ylab="Resíduos Studentizados", ylim=faixa, pch=16, cex=.7, cex.lab=1.2, cex.axis=1.5, cex.main=1.5)
   #identify(v$x,v$y,labels,cex =1.3) #identify points in the plot
   par(new=T)
   #

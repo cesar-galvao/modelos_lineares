@@ -1,0 +1,282 @@
+---
+title: "Questão 1"
+---
+
+Analisaremos o banco de dados `prostate` do pacote `faraway`, em que constam dados de estudo prospectivo com 97 homens com câncer de próstata. 
+
+```{r}
+pacman::p_load(tidyverse, faraway, psych, tidymodels)
+
+data(prostate)
+
+```
+
+A variável resposta neste caso é logaritmo do antígeno prostático específico da próstata (`lpsa`). As covariáveis observadas são: logaritmo do volume do câncer (`lcavol`), logaritmo do peso da próstata (`lweight`), idade (`age`), logaritmo da quantidade de hiperplasia prostática (`benignalbph`), invasão da vesícula seminal (`svi`), logaritmo da penetração capsular (`lcp`), escore de Gleason (`gleason`), e escore percentual de Gleason 4 ou 5 (`pgg45`).
+
+## Análise exporatória
+
+Iniciamos a análise exploratória com uma avaliação gráfica da distribuição das variáveis disponíveis. Aqui, as variáveis `age` e `pgg45` foram separadas para que não distorcessem a escala das demais variáveis ilustradas.
+
+Dentre o primeiro grupo de variáveis, pode-se destacar uma maior assimetria positiva em `gleason` e `lcp`, assim como uma dispersão muito pequena em `lweight` e `svi`. Quanto às últimas, é esperada uma pequena variação de `lweight` já que se trata de um órgão humano  e `svi` é uma variável dicotômica.
+
+```{r, fig.align='center', fig.cap="Boxplot de variáveis do banco de dados"}
+prostate %>%
+  select(-age, -pgg45)%>%
+  pivot_longer(everything(), names_to = "variavel") %>%
+  ggplot(aes(variavel, value))+
+  labs(x = "", y = "")+
+  geom_boxplot()+
+  stat_summary(fun=mean, geom="point", shape=5, size=2, color="black", fill="gray")+
+  theme_minimal()
+```
+Já em relação à variável `age`, notamos que a maioria dos indivíduos tem em torno de 60 anos. Ao mesmo tempo, vemos que a maioria dos indivíduos tem menos de 50% de escore percentual de Gleason 4 ou 5.
+
+
+```{r, fig.align='center', fig.cap="Boxplot de idade e escores de Gleason 4 ou 5"}
+prostate %>%
+  select(age, pgg45)%>%
+  pivot_longer(everything(), names_to = "variavel") %>%
+  ggplot(aes(variavel, value))+
+  labs(x = "", y = "")+
+  geom_boxplot()+
+  stat_summary(fun=mean, geom="point", shape=5, size=2, color="black", fill="gray")+
+  theme_minimal()
+```
+
+A tabela com medidas resumo a seguir aponta as mesmas assimetrias avaliadas anteriormente e desvios-padrão altos -- relativamente à escala de cada variável -- para `pgg45` e `lbph`. Notamos ainda que os indivíduos tem entre 41 e 79 anos de idade.
+
+```{r}
+#| tbl-cap: "Medidas resumo da base de dados"
+
+
+medidas <- describe(prostate)
+
+nomes <- row.names(medidas)
+
+medidas %>%
+  as_tibble() %>%
+  mutate(vars = nomes) %>%
+  select(vars, mean, median, sd, min, max, skew, kurtosis)%>%
+  knitr::kable(
+    align = c("c"),
+    booktabs = TRUE,
+    longtable = TRUE,
+    linesep = "",
+    escape = FALSE,
+    digits = 2,
+    col.names = c("", "Média", "Mediana", "Desv.Pad", "Mín", "Máx", "Skew.","Kurt.")
+    ) %>%
+  kableExtra::kable_styling(
+      position = "center",
+      latex_options = c("striped", "repeat_header"),
+      stripe_color = "gray!15")
+
+
+```
+
+## Ajuste de Modelo
+
+```{r, include = FALSE}
+fit <- lm(lpsa ~ (.), data = prostate)
+
+fit1 <- MASS::stepAIC(fit)
+
+```
+
+Iniciamos um ajuste de regressão linear utilizando a função `lm()` do pacote `stats` utilizando todas as variáveis. Para seleção de algum modelo com melhor desempenho sem a estimação de todos os parâmetros, utilizamos `MASS::stepAIC()` para uma seleção automática de covariáveis e terminamos com o seguinte modelo, que apresenta $R^2=$ `r round(summary(fit1)$r.squared, 2)`:
+
+$$
+\begin{aligned}
+  \hat{\text{lpsa}} &= \hat{\beta_0} + \hat{\beta_1} \, \text{lcavol} +\hat{\beta_2} \, \text{lweight} + \hat{\beta_3} \, \text{age} + \hat{\beta_4} \, \text{lbph} + \hat{\beta_5} \, \text{svi} \\ 
+   &= 0,951 + 0,565 \, \text{lcavol} + 0,423 \, \text{lweight} -0,014 \, \text{age} + 0,111 \, \text{lbph} + 0,721 \, \text{svi}.
+\end{aligned}
+$$
+
+No entanto, é possível ver na tabela a seguir que nem todos os coeficientes podem ser considerados significantes, de modo que reduzimos ainda mais o modelo.
+
+```{r}
+tidy(fit1) %>%
+  knitr::kable(
+    align = c("c"),
+    booktabs = TRUE,
+    longtable = TRUE,
+    linesep = "",
+    escape = FALSE,
+    digits = 3
+    ) %>%
+  kableExtra::kable_styling(
+      position = "center",
+      latex_options = c("striped", "repeat_header"),
+      stripe_color = "gray!15")
+
+fit2 <- lm(lpsa ~ lcavol + lweight + svi + 0 , data = prostate)
+```
+
+Quando consideramos apenas as covariáveis para as quais temos significância a 5%, ficamos com um modelo final da seguinte forma com $R^2=$ `r round(summary(fit2)$r.squared, 2)`:
+
+$$
+\begin{aligned}
+  \hat{\text{lpsa}} &= \hat{\beta_1} \, \text{lcavol} + \hat{\beta_2} \, \text{lweight} + \hat{\beta_5} \, \text{svi} \\ 
+   &=  0,552 \, \text{lcavol} + 0,436 \, \text{lweight}  + 0,668 \, \text{svi}.
+\end{aligned}
+$$
+
+### Análise de Variância
+
+Para construir a tabela da análise de variância, construimos primeiro apenas o modelo com intercepto e depois comparamos ao modelo selecionado na etapa anterior. A tabela de ANOVA é apresentada na tabela a seguir.
+
+```{r}
+
+#modelo só com intercepto
+fit0 <- lm(lpsa ~ 1, data = prostate)
+
+#tabela diretamente de anova()
+tabela <- anova(fit2, fit0) %>% 
+  as_tibble() %>%
+  select("gl" = Res.Df, "SQ" = RSS)
+
+#Correção dos graus de liberdade
+tabela$gl <- c(nrow(prostate)-length(coef(fit2)), nrow(prostate))
+
+#montando a fonte de variacao do modelo
+modelo <- tibble(gl = tabela$gl[2] - tabela$gl[1] + 1, SQ = tabela$SQ[2] - tabela$SQ[1])
+
+#arrumando a tabela
+tabela_qm <- tabela %>%
+  bind_rows(modelo) %>%
+  arrange(gl) %>%
+  mutate(Fonte = c("Regressão", "Resíduo", "Total"),
+         QM = SQ/gl) %>%
+  select(Fonte, everything())
+
+# Calculando F_0 e pvalor do teste
+F0 <- c(tabela_qm$QM[1]/tabela_qm$QM[2], NA, NA)
+pval <- pf(F0, df1=tabela_qm$gl[1], df2=tabela_qm$gl[2], lower.tail = FALSE)
+
+tabela_anova <- tabela_qm %>% bind_cols("F" = F0,"pval" = pval)
+
+options(knitr.kable.NA = '')
+
+tabela_anova %>%
+  knitr::kable(
+    align = c("c"),
+    booktabs = TRUE,
+    longtable = TRUE,
+    linesep = "",
+    escape = FALSE,
+    digits = 2,
+    col.names = c("Fonte", "g.l.", "SQ", "QM", "F", "p-valor")
+    ) %>%
+  kableExtra::kable_styling(
+      position = "center",
+      latex_options = c("striped", "repeat_header"),
+      stripe_color = "gray!15")
+```
+
+Conclui-se, pelo resultado do teste F (o p-valor apresentado na tabela é muito próximo de zero e por isso é arredondado para zero) que há pelo menos um dos coeficientes do modelo diferente de zero a um nível inferior a 0,001% de significância.
+
+### Avaliação da variância
+
+Comparando os valores ajustados da resposta com os resíduos Studentizados, os pontos parecem ter comportamento aleatório em torno do zero, sem indicação de mudança na variação dos pontos em algum intervalo de $\hat{Y}$. Podemos dizer portanto que não há indícios contra a suposição de homocedasticiade do modelo.
+
+```{r}
+tibble(
+  ajustados = fitted(fit2),
+  res_stu = stats::rstudent(fit2)
+) %>%
+  ggplot(aes(ajustados, res_stu))+
+  geom_point() +
+  theme_bw()+
+  labs(x = "Resposta ajustada", y = "Resíduos Studentizados")
+```
+
+### Suposição de normalidade
+
+Avalia-se a suposição de normalidade dos resíduos comparando os resíduos Studentizados com os quantis da distribuição Normal, tal qual um `qqplot`, porém com uma banda de confiança obtida via *bootstrap* paramétrico. 
+
+Observa-se que alguns dos pontos de fato parecem margear os limites da banda de confiança, mas estão muito próximos. Afirma-se portanto que não há fuga da suposição de normalidade dos resíduos e, portanto, da resposta.
+
+```{r}
+source("envelope_function.R")
+
+envelope_LR(fit2, OLS = T, main.title = "Gráfico dos resíduos com envelope") 
+```
+
+### Interpretação do modelo
+
+Foram conferidos, portanto, os pressupostos do modelo, de modo que se pode modelar o logaritmo do antígeno prostático específico (`lpsa`) em função de (1) logaritmo do volume do câncer (`lcavol`), (2) logaritmo do peso da próstata (`lweight`) e (5) invasão ou não da vesícula seminal (`svi`) da seguite forma:
+
+$$
+\begin{aligned}
+  \hat{\text{lpsa}} &= \hat{\beta_1} \, \text{lcavol} + \hat{\beta_2} \, \text{lweight} + \hat{\beta_5} \, \text{svi} \\ 
+   &=  0,552 \, \text{lcavol} + 0,436 \, \text{lweight}  + 0,668 \, \text{svi}.
+\end{aligned}
+$$
+
+Em outros termos, o aumento em uma unidade em alguma das covariáveis $X_i$ aumenta em $\beta_i$ o logaritmo do antígeno prostático específico.
+
+### Intervalos de confiança para $\hat{\beta_i}$
+
+```{r}
+X <- prostate %>%
+  select(lcavol, lweight, svi) %>%
+  as.matrix()
+
+invXtX <- solve(t(X) %*% X)
+
+```
+
+Consideramos que neste caso $\hat{\beta} \sim N_3\left( \beta, \sigma^2(X^\top X)^{-1} \right)$. Usamos $\hat{\sigma^2}$ como o quadrado médio do resíduo para estimar $\sigma^2$. A variância de $\hat{\beta}$ portanto é
+
+$$
+\hat{\sigma^2}(X^\top X)^{-1} = 0.51 \cdot 
+\begin{bmatrix} 
+0.0108 & -0.0030 & -0.0161\\
+-0.0030 & 0.0018 & 0.0008 \\
+-0.0161 & 0.0008 & 0.0856
+\end{bmatrix}
+$$
+
+e 
+
+$$
+\hat{\beta_j} \sim N \left( \beta_j, \hat{\sigma^2} \, a_{jj} \right)
+$$
+
+em que $a_{jj}$ é o $j$-ésimo elemento da diagonal da matriz $(X^\top X)^{-1}$.
+
+Construimos os intervalos de confiança da seguinte forma
+
+$$
+IC\left( \hat{\beta_j}; \gamma \right) = \hat{\beta_j} \pm t_{n-k; \, \gamma} \cdot \sqrt{\hat{\sigma^2} \, a_{jj}}, \quad n=97, \, k=3, \, \gamma = 0,95
+$$
+
+e expomos na tabela a seguir:
+
+```{r}
+tibble(coefs = coef(fit2)) %>%
+  mutate(LS = coefs + qt(.975, 94)*diag(invXtX),
+         LI = coefs - qt(.975, 94)*diag(invXtX)) %>%
+  transmute(
+    beta = c("beta 1", "beta 2", "beta 5"),
+    `[LI, LS]` = paste0("[",round(LI,3), ", ", round(LS, 3),"]")) %>%
+  knitr::kable(
+    align = c("c"),
+    booktabs = TRUE,
+    longtable = TRUE,
+    linesep = "",
+    escape = FALSE,
+    digits = 2,
+    col.names = c("Beta", "[LI, LS]")
+    ) %>%
+  kableExtra::kable_styling(
+      position = "center",
+      latex_options = c("striped", "repeat_header"),
+      stripe_color = "gray!15")
+
+
+```
+
+
+Nota-se que nenhum dos intervalos compreende o valor $0$, de modo que podemos dizer que os coeficientes escolhidos são todos diferentes de zero.
+
