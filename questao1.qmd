@@ -2,12 +2,27 @@
 title: "Questão 1"
 ---
 
-Analisaremos o banco de dados `prostate` do pacote `faraway`, em que constam dados de estudo prospectivo com 97 homens com câncer de próstata. 
+Analisaremos o banco de dados `prostate` do pacote `faraway`, em que constam dados de estudo prospectivo com 97 homens com câncer de próstata. A seguir são expostas as primeiras seis linhas do banco de dados:
 
 ```{r}
 pacman::p_load(tidyverse, faraway, psych, tidymodels)
 
 data(prostate)
+
+head(prostate, 6) %>%
+  select(lpsa, everything())%>%
+  knitr::kable(
+    align = c("c"),
+    booktabs = TRUE,
+    longtable = TRUE,
+    linesep = "",
+    escape = FALSE,
+    digits = 2
+    ) %>%
+  kableExtra::kable_styling(
+      position = "center",
+      latex_options = c("striped", "repeat_header"),
+      stripe_color = "gray!15")
 
 ```
 
@@ -109,21 +124,21 @@ tidy(fit1) %>%
       latex_options = c("striped", "repeat_header"),
       stripe_color = "gray!15")
 
-fit2 <- lm(lpsa ~ lcavol + lweight + svi + 0 , data = prostate)
+fit2 <- lm(lpsa ~ lcavol + lweight + svi , data = prostate)
 ```
 
-Quando consideramos apenas as covariáveis para as quais temos significância a 5%, ficamos com um modelo final da seguinte forma com $R^2=$ `r round(summary(fit2)$r.squared, 2)`:
+Quando consideramos apenas as covariáveis para as quais temos significância a 5%, ficamos com um modelo final expresso pela equação a seguir e temos $R^2=$ `r round(summary(fit2)$r.squared, 2)`, o que significa que esse percentual da variância dos dados podem ser explicados pelo modelo.
 
 $$
 \begin{aligned}
-  \hat{\text{lpsa}} &= \hat{\beta_1} \, \text{lcavol} + \hat{\beta_2} \, \text{lweight} + \hat{\beta_5} \, \text{svi} \\ 
-   &=  0,552 \, \text{lcavol} + 0,436 \, \text{lweight}  + 0,668 \, \text{svi}.
+  \hat{\text{lpsa}} &= \hat{\beta_0} +  \hat{\beta_1} \, \text{lcavol} + \hat{\beta_2} \, \text{lweight} + \hat{\beta_5} \, \text{svi} \\ 
+   &= -0,268  + 0,551 \, \text{lcavol} + 0,508 \, \text{lweight}  + 0,666 \, \text{svi}.
 \end{aligned}
 $$
 
 ### Análise de Variância
 
-Para construir a tabela da análise de variância, construimos primeiro apenas o modelo com intercepto e depois comparamos ao modelo selecionado na etapa anterior. A tabela de ANOVA é apresentada na tabela a seguir.
+Para construir a tabela da análise de variância, construimos primeiro o modelo apenas com o intercepto e depois comparamos ao modelo selecionado na etapa anterior. A tabela de ANOVA é apresentada na tabela a seguir.
 
 ```{r}
 
@@ -135,11 +150,9 @@ tabela <- anova(fit2, fit0) %>%
   as_tibble() %>%
   select("gl" = Res.Df, "SQ" = RSS)
 
-#Correção dos graus de liberdade
-tabela$gl <- c(nrow(prostate)-length(coef(fit2)), nrow(prostate))
 
 #montando a fonte de variacao do modelo
-modelo <- tibble(gl = tabela$gl[2] - tabela$gl[1] + 1, SQ = tabela$SQ[2] - tabela$SQ[1])
+modelo <- tibble(gl = nrow(prostate) - tabela$gl[1] -1, SQ = tabela$SQ[2] - tabela$SQ[1])
 
 #arrumando a tabela
 tabela_qm <- tabela %>%
@@ -204,18 +217,18 @@ envelope_LR(fit2, OLS = T, main.title = "Gráfico dos resíduos com envelope")
 
 ### Interpretação do modelo
 
-Foram conferidos, portanto, os pressupostos do modelo, de modo que se pode modelar o logaritmo do antígeno prostático específico (`lpsa`) em função de (1) logaritmo do volume do câncer (`lcavol`), (2) logaritmo do peso da próstata (`lweight`) e (5) invasão ou não da vesícula seminal (`svi`) da seguite forma:
+Foram conferidos, portanto, os pressupostos do modelo, de modo que se pode modelar o logaritmo do antígeno prostático específico (`lpsa`) em função de (0) uma média, o intercepto do modelo, (1) logaritmo do volume do câncer (`lcavol`), (2) logaritmo do peso da próstata (`lweight`) e (5) invasão ou não da vesícula seminal (`svi`) da seguite forma:
 
 $$
 \begin{aligned}
-  \hat{\text{lpsa}} &= \hat{\beta_1} \, \text{lcavol} + \hat{\beta_2} \, \text{lweight} + \hat{\beta_5} \, \text{svi} \\ 
-   &=  0,552 \, \text{lcavol} + 0,436 \, \text{lweight}  + 0,668 \, \text{svi}.
+  \hat{\text{lpsa}} &= \hat{\beta_0} +  \hat{\beta_1} \, \text{lcavol} + \hat{\beta_2} \, \text{lweight} + \hat{\beta_5} \, \text{svi} \\ 
+   &= -0,268  + 0,551 \, \text{lcavol} + 0,508 \, \text{lweight}  + 0,666 \, \text{svi}.
 \end{aligned}
 $$
 
 Em outros termos, o aumento em uma unidade em alguma das covariáveis $X_i$ aumenta em $\beta_i$ o logaritmo do antígeno prostático específico.
 
-### Intervalos de confiança para $\hat{\beta_i}$
+### Intervalos de confiança para $\beta_i$
 
 ```{r}
 X <- prostate %>%
@@ -254,7 +267,7 @@ $$
 e expomos na tabela a seguir:
 
 ```{r}
-tibble(coefs = coef(fit2)) %>%
+tibble(coefs = coef(fit2)[2:4]) %>%
   mutate(LS = coefs + qt(.975, 94)*diag(invXtX),
          LI = coefs - qt(.975, 94)*diag(invXtX)) %>%
   transmute(

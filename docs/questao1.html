@@ -191,7 +191,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#avaliação-da-variância" id="toc-avaliação-da-variância" class="nav-link" data-scroll-target="#avaliação-da-variância">Avaliação da variância</a></li>
   <li><a href="#suposição-de-normalidade" id="toc-suposição-de-normalidade" class="nav-link" data-scroll-target="#suposição-de-normalidade">Suposição de normalidade</a></li>
   <li><a href="#interpretação-do-modelo" id="toc-interpretação-do-modelo" class="nav-link" data-scroll-target="#interpretação-do-modelo">Interpretação do modelo</a></li>
-  <li><a href="#intervalos-de-confiança-para-hatbeta_i" id="toc-intervalos-de-confiança-para-hatbeta_i" class="nav-link" data-scroll-target="#intervalos-de-confiança-para-hatbeta_i">Intervalos de confiança para <span class="math inline">\hat{\beta_i}</span></a></li>
+  <li><a href="#intervalos-de-confiança-para-beta_i" id="toc-intervalos-de-confiança-para-beta_i" class="nav-link" data-scroll-target="#intervalos-de-confiança-para-beta_i">Intervalos de confiança para <span class="math inline">\beta_i</span></a></li>
   </ul></li>
   </ul>
 </nav>
@@ -216,14 +216,116 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<p>Analisaremos o banco de dados <code>prostate</code> do pacote <code>faraway</code>, em que constam dados de estudo prospectivo com 97 homens com câncer de próstata.</p>
+<p>Analisaremos o banco de dados <code>prostate</code> do pacote <code>faraway</code>, em que constam dados de estudo prospectivo com 97 homens com câncer de próstata. A seguir são expostas as primeiras seis linhas do banco de dados:</p>
 <div class="cell">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(tidyverse, faraway, psych, tidymodels)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(prostate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(prostate)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(prostate, <span class="dv">6</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(lpsa, <span class="fu">everything</span>())<span class="sc">%&gt;%</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"c"</span>),</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">booktabs =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">longtable =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">linesep =</span> <span class="st">""</span>,</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">escape =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">digits =</span> <span class="dv">2</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kable_styling</span>(</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>      <span class="at">position =</span> <span class="st">"center"</span>,</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>      <span class="at">latex_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"repeat_header"</span>),</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>      <span class="at">stripe_color =</span> <span class="st">"gray!15"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small" data-quarto-postprocess="true">
+<thead>
+<tr class="header">
+<th style="text-align: center;" data-quarto-table-cell-role="th">lpsa</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">lcavol</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">lweight</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">age</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">lbph</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">svi</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">lcp</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">gleason</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">pgg45</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">-0.43</td>
+<td style="text-align: center;">-0.58</td>
+<td style="text-align: center;">2.77</td>
+<td style="text-align: center;">50</td>
+<td style="text-align: center;">-1.39</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">-1.39</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">-0.16</td>
+<td style="text-align: center;">-0.99</td>
+<td style="text-align: center;">3.32</td>
+<td style="text-align: center;">58</td>
+<td style="text-align: center;">-1.39</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">-1.39</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">-0.16</td>
+<td style="text-align: center;">-0.51</td>
+<td style="text-align: center;">2.69</td>
+<td style="text-align: center;">74</td>
+<td style="text-align: center;">-1.39</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">-1.39</td>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">20</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">-0.16</td>
+<td style="text-align: center;">-1.20</td>
+<td style="text-align: center;">3.28</td>
+<td style="text-align: center;">58</td>
+<td style="text-align: center;">-1.39</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">-1.39</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">0.37</td>
+<td style="text-align: center;">0.75</td>
+<td style="text-align: center;">3.43</td>
+<td style="text-align: center;">62</td>
+<td style="text-align: center;">-1.39</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">-1.39</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">0.77</td>
+<td style="text-align: center;">-1.05</td>
+<td style="text-align: center;">3.23</td>
+<td style="text-align: center;">50</td>
+<td style="text-align: center;">-1.39</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">-1.39</td>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">0</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
 </div>
 <p>A variável resposta neste caso é logaritmo do antígeno prostático específico da próstata (<code>lpsa</code>). As covariáveis observadas são: logaritmo do volume do câncer (<code>lcavol</code>), logaritmo do peso da próstata (<code>lweight</code>), idade (<code>age</code>), logaritmo da quantidade de hiperplasia prostática (<code>benignalbph</code>), invasão da vesícula seminal (<code>svi</code>), logaritmo da penetração capsular (<code>lcp</code>), escore de Gleason (<code>gleason</code>), e escore percentual de Gleason 4 ou 5 (<code>pgg45</code>).</p>
 <section id="análise-exporatória" class="level2">
@@ -500,19 +602,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <details>
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fit2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(lpsa <span class="sc">~</span> lcavol <span class="sc">+</span> lweight <span class="sc">+</span> svi <span class="sc">+</span> <span class="dv">0</span> , <span class="at">data =</span> prostate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fit2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(lpsa <span class="sc">~</span> lcavol <span class="sc">+</span> lweight <span class="sc">+</span> svi , <span class="at">data =</span> prostate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<p>Quando consideramos apenas as covariáveis para as quais temos significância a 5%, ficamos com um modelo final da seguinte forma com <span class="math inline">R^2=</span> 0.93:</p>
+<p>Quando consideramos apenas as covariáveis para as quais temos significância a 5%, ficamos com um modelo final expresso pela equação a seguir e temos <span class="math inline">R^2=</span> 0.63, o que significa que esse percentual da variância dos dados podem ser explicados pelo modelo.</p>
 <p><span class="math display">
 \begin{aligned}
-  \hat{\text{lpsa}} &amp;= \hat{\beta_1} \, \text{lcavol} + \hat{\beta_2} \, \text{lweight} + \hat{\beta_5} \, \text{svi} \\
-   &amp;=  0,552 \, \text{lcavol} + 0,436 \, \text{lweight}  + 0,668 \, \text{svi}.
+  \hat{\text{lpsa}} &amp;= \hat{\beta_0} +  \hat{\beta_1} \, \text{lcavol} + \hat{\beta_2} \, \text{lweight} + \hat{\beta_5} \, \text{svi} \\
+   &amp;= -0,268  + 0,551 \, \text{lcavol} + 0,508 \, \text{lweight}  + 0,666 \, \text{svi}.
 \end{aligned}
 </span></p>
 <section id="análise-de-variância" class="level3">
 <h3 class="anchored" data-anchor-id="análise-de-variância">Análise de Variância</h3>
-<p>Para construir a tabela da análise de variância, construimos primeiro apenas o modelo com intercepto e depois comparamos ao modelo selecionado na etapa anterior. A tabela de ANOVA é apresentada na tabela a seguir.</p>
+<p>Para construir a tabela da análise de variância, construimos primeiro o modelo apenas com o intercepto e depois comparamos ao modelo selecionado na etapa anterior. A tabela de ANOVA é apresentada na tabela a seguir.</p>
 <div class="cell">
 <details>
 <summary>Code</summary>
@@ -524,42 +626,40 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>() <span class="sc">%&gt;%</span></span>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">"gl"</span> <span class="ot">=</span> Res.Df, <span class="st">"SQ"</span> <span class="ot">=</span> RSS)</span>
 <span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co">#Correção dos graus de liberdade</span></span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>tabela<span class="sc">$</span>gl <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">nrow</span>(prostate)<span class="sc">-</span><span class="fu">length</span>(<span class="fu">coef</span>(fit2)), <span class="fu">nrow</span>(prostate))</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co">#montando a fonte de variacao do modelo</span></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>modelo <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">gl =</span> tabela<span class="sc">$</span>gl[<span class="dv">2</span>] <span class="sc">-</span> tabela<span class="sc">$</span>gl[<span class="dv">1</span>] <span class="sc">+</span> <span class="dv">1</span>, <span class="at">SQ =</span> tabela<span class="sc">$</span>SQ[<span class="dv">2</span>] <span class="sc">-</span> tabela<span class="sc">$</span>SQ[<span class="dv">1</span>])</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="co">#arrumando a tabela</span></span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>tabela_qm <span class="ot">&lt;-</span> tabela <span class="sc">%&gt;%</span></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(modelo) <span class="sc">%&gt;%</span></span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(gl) <span class="sc">%&gt;%</span></span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Fonte =</span> <span class="fu">c</span>(<span class="st">"Regressão"</span>, <span class="st">"Resíduo"</span>, <span class="st">"Total"</span>),</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>         <span class="at">QM =</span> SQ<span class="sc">/</span>gl) <span class="sc">%&gt;%</span></span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Fonte, <span class="fu">everything</span>())</span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculando F_0 e pvalor do teste</span></span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>F0 <span class="ot">&lt;-</span> <span class="fu">c</span>(tabela_qm<span class="sc">$</span>QM[<span class="dv">1</span>]<span class="sc">/</span>tabela_qm<span class="sc">$</span>QM[<span class="dv">2</span>], <span class="cn">NA</span>, <span class="cn">NA</span>)</span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>pval <span class="ot">&lt;-</span> <span class="fu">pf</span>(F0, <span class="at">df1=</span>tabela_qm<span class="sc">$</span>gl[<span class="dv">1</span>], <span class="at">df2=</span>tabela_qm<span class="sc">$</span>gl[<span class="dv">2</span>], <span class="at">lower.tail =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co">#montando a fonte de variacao do modelo</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>modelo <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">gl =</span> <span class="fu">nrow</span>(prostate) <span class="sc">-</span> tabela<span class="sc">$</span>gl[<span class="dv">1</span>] <span class="sc">-</span><span class="dv">1</span>, <span class="at">SQ =</span> tabela<span class="sc">$</span>SQ[<span class="dv">2</span>] <span class="sc">-</span> tabela<span class="sc">$</span>SQ[<span class="dv">1</span>])</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="co">#arrumando a tabela</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>tabela_qm <span class="ot">&lt;-</span> tabela <span class="sc">%&gt;%</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_rows</span>(modelo) <span class="sc">%&gt;%</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(gl) <span class="sc">%&gt;%</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Fonte =</span> <span class="fu">c</span>(<span class="st">"Regressão"</span>, <span class="st">"Resíduo"</span>, <span class="st">"Total"</span>),</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">QM =</span> SQ<span class="sc">/</span>gl) <span class="sc">%&gt;%</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Fonte, <span class="fu">everything</span>())</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculando F_0 e pvalor do teste</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>F0 <span class="ot">&lt;-</span> <span class="fu">c</span>(tabela_qm<span class="sc">$</span>QM[<span class="dv">1</span>]<span class="sc">/</span>tabela_qm<span class="sc">$</span>QM[<span class="dv">2</span>], <span class="cn">NA</span>, <span class="cn">NA</span>)</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>pval <span class="ot">&lt;-</span> <span class="fu">pf</span>(F0, <span class="at">df1=</span>tabela_qm<span class="sc">$</span>gl[<span class="dv">1</span>], <span class="at">df2=</span>tabela_qm<span class="sc">$</span>gl[<span class="dv">2</span>], <span class="at">lower.tail =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>tabela_anova <span class="ot">&lt;-</span> tabela_qm <span class="sc">%&gt;%</span> <span class="fu">bind_cols</span>(<span class="st">"F"</span> <span class="ot">=</span> F0,<span class="st">"pval"</span> <span class="ot">=</span> pval)</span>
 <span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>tabela_anova <span class="ot">&lt;-</span> tabela_qm <span class="sc">%&gt;%</span> <span class="fu">bind_cols</span>(<span class="st">"F"</span> <span class="ot">=</span> F0,<span class="st">"pval"</span> <span class="ot">=</span> pval)</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">knitr.kable.NA =</span> <span class="st">''</span>)</span>
 <span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">knitr.kable.NA =</span> <span class="st">''</span>)</span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>tabela_anova <span class="sc">%&gt;%</span></span>
-<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
-<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"c"</span>),</span>
-<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">booktabs =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">longtable =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">linesep =</span> <span class="st">""</span>,</span>
-<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">escape =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">digits =</span> <span class="dv">2</span>,</span>
-<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Fonte"</span>, <span class="st">"g.l."</span>, <span class="st">"SQ"</span>, <span class="st">"QM"</span>, <span class="st">"F"</span>, <span class="st">"p-valor"</span>)</span>
-<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kable_styling</span>(</span>
-<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>      <span class="at">position =</span> <span class="st">"center"</span>,</span>
-<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>      <span class="at">latex_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"repeat_header"</span>),</span>
-<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>      <span class="at">stripe_color =</span> <span class="st">"gray!15"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>tabela_anova <span class="sc">%&gt;%</span></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"c"</span>),</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">booktabs =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">longtable =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">linesep =</span> <span class="st">""</span>,</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">escape =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">digits =</span> <span class="dv">2</span>,</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Fonte"</span>, <span class="st">"g.l."</span>, <span class="st">"SQ"</span>, <span class="st">"QM"</span>, <span class="st">"F"</span>, <span class="st">"p-valor"</span>)</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kable_styling</span>(</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>      <span class="at">position =</span> <span class="st">"center"</span>,</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>      <span class="at">latex_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"repeat_header"</span>),</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>      <span class="at">stripe_color =</span> <span class="st">"gray!15"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <table class="table table-sm table-striped small" data-quarto-postprocess="true">
@@ -576,25 +676,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td style="text-align: center;">Regressão</td>
-<td style="text-align: center;">4</td>
-<td style="text-align: center;">80.01</td>
-<td style="text-align: center;">20.00</td>
-<td style="text-align: center;">39.24</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">80.13</td>
+<td style="text-align: center;">26.71</td>
+<td style="text-align: center;">51.99</td>
 <td style="text-align: center;">0</td>
 </tr>
 <tr class="even">
 <td style="text-align: center;">Resíduo</td>
-<td style="text-align: center;">94</td>
-<td style="text-align: center;">47.91</td>
+<td style="text-align: center;">93</td>
+<td style="text-align: center;">47.78</td>
 <td style="text-align: center;">0.51</td>
 <td style="text-align: center;"></td>
 <td style="text-align: center;"></td>
 </tr>
 <tr class="odd">
 <td style="text-align: center;">Total</td>
-<td style="text-align: center;">97</td>
+<td style="text-align: center;">96</td>
 <td style="text-align: center;">127.92</td>
-<td style="text-align: center;">1.32</td>
+<td style="text-align: center;">1.33</td>
 <td style="text-align: center;"></td>
 <td style="text-align: center;"></td>
 </tr>
@@ -644,17 +744,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="interpretação-do-modelo" class="level3">
 <h3 class="anchored" data-anchor-id="interpretação-do-modelo">Interpretação do modelo</h3>
-<p>Foram conferidos, portanto, os pressupostos do modelo, de modo que se pode modelar o logaritmo do antígeno prostático específico (<code>lpsa</code>) em função de (1) logaritmo do volume do câncer (<code>lcavol</code>), (2) logaritmo do peso da próstata (<code>lweight</code>) e (5) invasão ou não da vesícula seminal (<code>svi</code>) da seguite forma:</p>
+<p>Foram conferidos, portanto, os pressupostos do modelo, de modo que se pode modelar o logaritmo do antígeno prostático específico (<code>lpsa</code>) em função de (0) uma média, o intercepto do modelo, (1) logaritmo do volume do câncer (<code>lcavol</code>), (2) logaritmo do peso da próstata (<code>lweight</code>) e (5) invasão ou não da vesícula seminal (<code>svi</code>) da seguite forma:</p>
 <p><span class="math display">
 \begin{aligned}
-  \hat{\text{lpsa}} &amp;= \hat{\beta_1} \, \text{lcavol} + \hat{\beta_2} \, \text{lweight} + \hat{\beta_5} \, \text{svi} \\
-   &amp;=  0,552 \, \text{lcavol} + 0,436 \, \text{lweight}  + 0,668 \, \text{svi}.
+  \hat{\text{lpsa}} &amp;= \hat{\beta_0} +  \hat{\beta_1} \, \text{lcavol} + \hat{\beta_2} \, \text{lweight} + \hat{\beta_5} \, \text{svi} \\
+   &amp;= -0,268  + 0,551 \, \text{lcavol} + 0,508 \, \text{lweight}  + 0,666 \, \text{svi}.
 \end{aligned}
 </span></p>
 <p>Em outros termos, o aumento em uma unidade em alguma das covariáveis <span class="math inline">X_i</span> aumenta em <span class="math inline">\beta_i</span> o logaritmo do antígeno prostático específico.</p>
 </section>
-<section id="intervalos-de-confiança-para-hatbeta_i" class="level3">
-<h3 class="anchored" data-anchor-id="intervalos-de-confiança-para-hatbeta_i">Intervalos de confiança para <span class="math inline">\hat{\beta_i}</span></h3>
+<section id="intervalos-de-confiança-para-beta_i" class="level3">
+<h3 class="anchored" data-anchor-id="intervalos-de-confiança-para-beta_i">Intervalos de confiança para <span class="math inline">\beta_i</span></h3>
 <div class="cell">
 <details>
 <summary>Code</summary>
@@ -687,7 +787,7 @@ IC\left( \hat{\beta_j}; \gamma \right) = \hat{\beta_j} \pm t_{n-k; \, \gamma} \c
 <div class="cell">
 <details>
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(<span class="at">coefs =</span> <span class="fu">coef</span>(fit2)) <span class="sc">%&gt;%</span></span>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(<span class="at">coefs =</span> <span class="fu">coef</span>(fit2)[<span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>]) <span class="sc">%&gt;%</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">LS =</span> coefs <span class="sc">+</span> <span class="fu">qt</span>(.<span class="dv">975</span>, <span class="dv">94</span>)<span class="sc">*</span><span class="fu">diag</span>(invXtX),</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">LI =</span> coefs <span class="sc">-</span> <span class="fu">qt</span>(.<span class="dv">975</span>, <span class="dv">94</span>)<span class="sc">*</span><span class="fu">diag</span>(invXtX)) <span class="sc">%&gt;%</span></span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(</span>
@@ -718,15 +818,15 @@ IC\left( \hat{\beta_j}; \gamma \right) = \hat{\beta_j} \pm t_{n-k; \, \gamma} \c
 <tbody>
 <tr class="odd">
 <td style="text-align: center;">beta 1</td>
-<td style="text-align: center;">[0.531, 0.574]</td>
+<td style="text-align: center;">[0.53, 0.573]</td>
 </tr>
 <tr class="even">
 <td style="text-align: center;">beta 2</td>
-<td style="text-align: center;">[0.432, 0.44]</td>
+<td style="text-align: center;">[0.505, 0.512]</td>
 </tr>
 <tr class="odd">
 <td style="text-align: center;">beta 5</td>
-<td style="text-align: center;">[0.498, 0.838]</td>
+<td style="text-align: center;">[0.496, 0.836]</td>
 </tr>
 </tbody>
 </table>
