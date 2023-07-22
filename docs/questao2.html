@@ -656,6 +656,29 @@ X = \begin{bmatrix}
 <p><span class="math display">
 \hat{\beta_G} \, \pm \, t_{n-2} \, \sqrt{\hat\sigma^2 (X^{\top}V^{-1}X)^{-1})}
 </span></p>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">attach</span>(supervisores)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(nsupervisores)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(<span class="fu">cbind</span>(<span class="fu">rep</span>(<span class="dv">1</span>,<span class="fu">length</span>(ntrabalhadores)),ntrabalhadores))</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(<span class="fu">summary</span>(fit_w3)<span class="sc">$</span>coefficients[,<span class="dv">1</span>])</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>V <span class="ot">&lt;-</span> <span class="fu">diag</span>(ntrabalhadores<span class="sc">^</span><span class="dv">3</span>)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>P <span class="ot">&lt;-</span> <span class="fu">diag</span>(<span class="fu">sqrt</span>(ntrabalhadores<span class="sc">^</span><span class="dv">3</span>))</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>Z <span class="ot">&lt;-</span> <span class="fu">solve</span>(P)<span class="sc">%*%</span>Y</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>Q <span class="ot">&lt;-</span> <span class="fu">solve</span>(P)<span class="sc">%*%</span>X</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>SQT_nc <span class="ot">&lt;-</span> <span class="fu">t</span>(Y)<span class="sc">%*%</span><span class="fu">solve</span>(V)<span class="sc">%*%</span>Y <span class="sc">%&gt;%</span> <span class="fu">as.double</span>()</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>SQReg_nc <span class="ot">&lt;-</span> <span class="fu">t</span>(B)<span class="sc">%*%</span><span class="fu">t</span>(X)<span class="sc">%*%</span><span class="fu">solve</span>(V)<span class="sc">%*%</span>Y <span class="sc">%&gt;%</span> <span class="fu">as.double</span>()</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>SQRes <span class="ot">&lt;-</span> SQT_nc<span class="sc">-</span>SQReg_nc <span class="sc">%&gt;%</span> <span class="fu">as.double</span>()</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>covar <span class="ot">&lt;-</span> <span class="fu">as.double</span>(SQRes<span class="sc">/</span>(<span class="fu">length</span>(nsupervisores)<span class="sc">-</span><span class="dv">2</span>))<span class="sc">*</span><span class="fu">solve</span>(<span class="fu">t</span>(X)<span class="sc">%*%</span><span class="fu">solve</span>(V)<span class="sc">%*%</span>X)</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>LS <span class="ot">&lt;-</span> <span class="fu">coef</span>(fit_w3)[<span class="dv">2</span>] <span class="sc">+</span> <span class="fu">qt</span>(.<span class="dv">95</span>, <span class="dv">25</span>)<span class="sc">*</span> <span class="fu">sqrt</span>(covar[<span class="dv">2</span>,<span class="dv">2</span>])</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>LI <span class="ot">&lt;-</span> <span class="fu">coef</span>(fit_w3)[<span class="dv">2</span>] <span class="sc">+</span> <span class="fu">qt</span>(.<span class="dv">05</span>, <span class="dv">25</span>)<span class="sc">*</span> <span class="fu">sqrt</span>(covar[<span class="dv">2</span>,<span class="dv">2</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
 <p>Com limites <span class="math inline">LI =</span> 0.11 e <span class="math inline">LS =</span> 0.14.</p>
 </section>
 <section id="análise-de-variância" class="level3">
@@ -664,30 +687,30 @@ X = \begin{bmatrix}
 <div class="cell">
 <details>
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>tabela_anova <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">fonte =</span> <span class="fu">c</span>(<span class="st">"Regressão"</span>, <span class="st">"Resíduo"</span>, <span class="st">"Total"</span>),</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">gl =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">25</span>, <span class="dv">26</span>),</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">SQ =</span> <span class="fu">c</span>(SQReg_nc, SQRes, SQT_nc)</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">QM =</span> SQ<span class="sc">/</span>gl)</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>f0 <span class="ot">&lt;-</span> <span class="fu">c</span>(tabela_anova<span class="sc">$</span>QM[<span class="dv">1</span>]<span class="sc">/</span>tabela_anova<span class="sc">$</span>QM[<span class="dv">2</span>], <span class="cn">NA</span>,<span class="cn">NA</span>)</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>pval <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">-</span><span class="fu">pf</span>(f0, <span class="dv">1</span>, <span class="dv">25</span>))</span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="fu">bind_cols</span>(tabela_anova, f0, pval) <span class="sc">%&gt;%</span></span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"c"</span>),</span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">booktabs =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">longtable =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">linesep =</span> <span class="st">""</span>,</span>
-<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">escape =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">digits =</span> <span class="dv">4</span>,</span>
-<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Fonte"</span>, <span class="st">"g.l."</span>, <span class="st">"SQ"</span>, <span class="st">"QM"</span>, <span class="st">"F"</span>, <span class="st">"p-valor"</span>)</span>
-<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kable_styling</span>(</span>
-<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>      <span class="at">position =</span> <span class="st">"center"</span>,</span>
-<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>      <span class="at">latex_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"repeat_header"</span>),</span>
-<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>      <span class="at">stripe_color =</span> <span class="st">"gray!15"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>tabela_anova <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">fonte =</span> <span class="fu">c</span>(<span class="st">"Regressão"</span>, <span class="st">"Resíduo"</span>, <span class="st">"Total"</span>),</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">gl =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">25</span>, <span class="dv">26</span>),</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">SQ =</span> <span class="fu">c</span>(SQReg_nc, SQRes, SQT_nc)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">QM =</span> SQ<span class="sc">/</span>gl)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>f0 <span class="ot">&lt;-</span> <span class="fu">c</span>(tabela_anova<span class="sc">$</span>QM[<span class="dv">1</span>]<span class="sc">/</span>tabela_anova<span class="sc">$</span>QM[<span class="dv">2</span>], <span class="cn">NA</span>,<span class="cn">NA</span>)</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>pval <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">-</span><span class="fu">pf</span>(f0, <span class="dv">1</span>, <span class="dv">25</span>))</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="fu">bind_cols</span>(tabela_anova, f0, pval) <span class="sc">%&gt;%</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">align =</span> <span class="fu">c</span>(<span class="st">"c"</span>),</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">booktabs =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">longtable =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">linesep =</span> <span class="st">""</span>,</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">escape =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">digits =</span> <span class="dv">4</span>,</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Fonte"</span>, <span class="st">"g.l."</span>, <span class="st">"SQ"</span>, <span class="st">"QM"</span>, <span class="st">"F"</span>, <span class="st">"p-valor"</span>)</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kable_styling</span>(</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>      <span class="at">position =</span> <span class="st">"center"</span>,</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>      <span class="at">latex_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"repeat_header"</span>),</span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>      <span class="at">stripe_color =</span> <span class="st">"gray!15"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stderr">
 <pre><code>New names:

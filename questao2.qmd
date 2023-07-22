@@ -252,7 +252,7 @@ $$
 \hat{\beta_G} \, \pm \, t_{n-2} \, \sqrt{\hat\sigma^2 (X^{\top}V^{-1}X)^{-1})}
 $$
 
-```{r, include = FALSE}
+```{r}
 attach(supervisores)
 
 Y <- as.matrix(nsupervisores)
