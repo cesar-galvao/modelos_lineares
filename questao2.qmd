@@ -247,29 +247,64 @@ $$
 \hat{\beta_G} \sim N(\beta, \sigma^2(X^{\top}V^{-1}X)^{-1})
 $$
 E obtemos o seguinte intervalo de confiança:
-```{r}
-# X <- matrix(c(rep(1, 27),supervisores$ntrabalhadores), ncol = 2)
-# V_1 <- solve(diag(supervisores$ntrabalhadores^3))
-# 
-# P_1 <- diag(1/sqrt(supervisores$ntrabalhadores^3))
-# 
-# Q <- P_1 %*% X
-# 
-# Y <- supervisores$nsupervisores
-# 
-# betaG <- solve(t(X)%*%V_1%*%X) %*% t(X) %*% V_1 %*% supervisores$nsupervisores
-# 
-# xtxInv <- solve(t(X) %*% V_1 %*% X)
-# 
-# Zhat <- fitted(fit_w3)
-# Z <- P_1 %*% Y
-# 
-# sqres <- sum((Z[,1]-Zhat)^2) #????
-# 
-# (confint(fit_w2, level = .9) %>% as_tibble())[2,]
-# 
-# t(Y)%*%V_1%*%Y
+
+$$
+\hat{\beta_G} \, \pm \, t_{n-2} \, \sqrt{\hat\sigma^2 (X^{\top}V^{-1}X)^{-1})}
+$$
+
+```{r, include = FALSE}
+attach(supervisores)
+
+Y <- as.matrix(nsupervisores)
+X <- as.matrix(cbind(rep(1,length(ntrabalhadores)),ntrabalhadores))
+B <- as.matrix(summary(fit_w3)$coefficients[,1])
+V <- diag(ntrabalhadores^3)
+P <- diag(sqrt(ntrabalhadores^3))
+Z <- solve(P)%*%Y
+Q <- solve(P)%*%X
+
+SQT_nc <- t(Y)%*%solve(V)%*%Y %>% as.double()
+SQReg_nc <- t(B)%*%t(X)%*%solve(V)%*%Y %>% as.double()
+SQRes <- SQT_nc-SQReg_nc %>% as.double()
+
+covar <- as.double(SQRes/(length(nsupervisores)-2))*solve(t(X)%*%solve(V)%*%X)
+
+LS <- coef(fit_w3)[2] + qt(.95, 25)* sqrt(covar[2,2])
+LI <- coef(fit_w3)[2] + qt(.05, 25)* sqrt(covar[2,2])
 ```
+
+Com limites $LI =$ `r round(LI,2)` e $LS =$ `r round(LS,2)`.
 
 
 ### Análise de variância
+
+Finalmente, montamos uma tabela de análise de variância:
+
+```{r}
+tabela_anova <- tibble(
+  fonte = c("Regressão", "Resíduo", "Total"),
+  gl = c(1, 25, 26),
+  SQ = c(SQReg_nc, SQRes, SQT_nc)
+) %>%
+  mutate(QM = SQ/gl)
+
+f0 <- c(tabela_anova$QM[1]/tabela_anova$QM[2], NA,NA)
+pval <- c(1-pf(f0, 1, 25))
+
+bind_cols(tabela_anova, f0, pval) %>%
+  knitr::kable(
+    align = c("c"),
+    booktabs = TRUE,
+    longtable = TRUE,
+    linesep = "",
+    escape = FALSE,
+    digits = 4,
+    col.names = c("Fonte", "g.l.", "SQ", "QM", "F", "p-valor")
+    ) %>%
+  kableExtra::kable_styling(
+      position = "center",
+      latex_options = c("striped", "repeat_header"),
+      stripe_color = "gray!15")
+```
+
+Concluimos pela análise de tabela de variância que nosso modelo transformado é adequado para explicar os dados.
