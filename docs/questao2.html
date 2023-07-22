@@ -190,6 +190,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#análise-de-resíduos-studentizados" id="toc-análise-de-resíduos-studentizados" class="nav-link" data-scroll-target="#análise-de-resíduos-studentizados">Análise de resíduos Studentizados</a></li>
   <li><a href="#avaliação-de-normalidade-da-resposta" id="toc-avaliação-de-normalidade-da-resposta" class="nav-link" data-scroll-target="#avaliação-de-normalidade-da-resposta">Avaliação de normalidade da resposta</a></li>
   <li><a href="#modelos-sob-mínimos-quadrados-ponderados" id="toc-modelos-sob-mínimos-quadrados-ponderados" class="nav-link" data-scroll-target="#modelos-sob-mínimos-quadrados-ponderados">Modelos sob Mínimos Quadrados Ponderados</a></li>
+  <li><a href="#interpretação-dos-coeficientes-estimados" id="toc-interpretação-dos-coeficientes-estimados" class="nav-link" data-scroll-target="#interpretação-dos-coeficientes-estimados">Interpretação dos coeficientes estimados</a></li>
+  <li><a href="#intervalo-confiança" id="toc-intervalo-confiança" class="nav-link" data-scroll-target="#intervalo-confiança">Intervalo confiança</a></li>
+  <li><a href="#análise-de-variância" id="toc-análise-de-variância" class="nav-link" data-scroll-target="#análise-de-variância">Análise de variância</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -478,18 +481,18 @@ X = \begin{bmatrix}
 1 &amp; x_n
 \end{bmatrix} \quad \Rightarrow \quad Q = \begin{bmatrix}
 \frac{1}{\sqrt{x_1^p}} &amp; \frac{x_1}{\sqrt{x_1^p}}\\
-\frac{1}{\sqrt{x_2^p}} &amp; \frac{x_2}{\sqrt{x_1^p}} \\
+\frac{1}{\sqrt{x_2^p}} &amp; \frac{x_2}{\sqrt{x_2^p}} \\
 \vdots &amp; \vdots \\
-\frac{1}{\sqrt{x_2^p}} &amp; \frac{x_n}{\sqrt{x_1^p}}
+\frac{1}{\sqrt{x_3^p}} &amp; \frac{x_n}{\sqrt{x_3^p}}
 \end{bmatrix}
 </span></p>
-<p>que não possui um termo constante, portanto não possui intercepto. Os novos modelos são ajustados utilizando a mesma função <code>lm()</code>, porém ajustando o argumento <code>weights =</code> <span class="math inline">1/(ntrabalhadores)^p</span>. A tabela com os estimadores e suas características para os modelos sem intercepto são expostas a seguir.</p>
+<p>que não possui um termo constante, portanto não possui intercepto. Os novos modelos são ajustados utilizando a mesma função <code>lm()</code>, porém ajustando o argumento <code>weights</code> = <span class="math inline">1/(ntrabalhadores)^p</span>. A tabela com os estimadores e suas características para os modelos sem intercepto são expostas a seguir.</p>
 <div class="cell">
 <details>
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>fit_w1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(ntrabalhadores <span class="sc">~</span> nsupervisores, <span class="at">weights =</span> <span class="dv">1</span><span class="sc">/</span>(ntrabalhadores)<span class="sc">^</span><span class="dv">1</span>, <span class="at">data =</span> supervisores)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>fit_w2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(ntrabalhadores <span class="sc">~</span> nsupervisores, <span class="at">weights =</span> <span class="dv">1</span><span class="sc">/</span>(ntrabalhadores)<span class="sc">^</span><span class="dv">2</span>, <span class="at">data =</span> supervisores)</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>fit_w3 <span class="ot">&lt;-</span> <span class="fu">lm</span>(ntrabalhadores <span class="sc">~</span> nsupervisores, <span class="at">weights =</span> <span class="dv">1</span><span class="sc">/</span>(ntrabalhadores)<span class="sc">^</span><span class="dv">3</span>, <span class="at">data =</span> supervisores)</span>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>fit_w1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(nsupervisores <span class="sc">~</span> ntrabalhadores, <span class="at">weights =</span> <span class="dv">1</span><span class="sc">/</span>(ntrabalhadores)<span class="sc">^</span><span class="dv">1</span>, <span class="at">data =</span> supervisores)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>fit_w2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(nsupervisores <span class="sc">~</span> ntrabalhadores, <span class="at">weights =</span> <span class="dv">1</span><span class="sc">/</span>(ntrabalhadores)<span class="sc">^</span><span class="dv">2</span>, <span class="at">data =</span> supervisores)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>fit_w3 <span class="ot">&lt;-</span> <span class="fu">lm</span>(nsupervisores <span class="sc">~</span> ntrabalhadores, <span class="at">weights =</span> <span class="dv">1</span><span class="sc">/</span>(ntrabalhadores)<span class="sc">^</span><span class="dv">3</span>, <span class="at">data =</span> supervisores)</span>
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="fu">bind_rows</span>(<span class="fu">tidy</span>(fit_w1), <span class="fu">tidy</span>(fit_w2), <span class="fu">tidy</span>(fit_w3)) <span class="sc">%&gt;%</span></span>
@@ -530,17 +533,17 @@ X = \begin{bmatrix}
 <tr class="odd">
 <td style="text-align: center;">1</td>
 <td style="text-align: center;">(Intercept)</td>
-<td style="text-align: center;">30.8322</td>
-<td style="text-align: center;">52.9944</td>
-<td style="text-align: center;">0.5818</td>
-<td style="text-align: center;">0.5659</td>
+<td style="text-align: center;">7.7739</td>
+<td style="text-align: center;">6.4302</td>
+<td style="text-align: center;">1.2090</td>
+<td style="text-align: center;">0.2380</td>
 <td style="text-align: center;">0.8475</td>
 </tr>
 <tr class="even">
 <td style="text-align: center;">1</td>
-<td style="text-align: center;">nsupervisores</td>
-<td style="text-align: center;">7.4242</td>
-<td style="text-align: center;">0.6299</td>
+<td style="text-align: center;">ntrabalhadores</td>
+<td style="text-align: center;">0.1142</td>
+<td style="text-align: center;">0.0097</td>
 <td style="text-align: center;">11.7865</td>
 <td style="text-align: center;">0.0000</td>
 <td style="text-align: center;">NA</td>
@@ -548,17 +551,17 @@ X = \begin{bmatrix}
 <tr class="odd">
 <td style="text-align: center;">2</td>
 <td style="text-align: center;">(Intercept)</td>
-<td style="text-align: center;">26.3475</td>
-<td style="text-align: center;">35.4991</td>
-<td style="text-align: center;">0.7422</td>
-<td style="text-align: center;">0.4649</td>
+<td style="text-align: center;">3.8033</td>
+<td style="text-align: center;">4.5697</td>
+<td style="text-align: center;">0.8323</td>
+<td style="text-align: center;">0.4131</td>
 <td style="text-align: center;">0.8785</td>
 </tr>
 <tr class="even">
 <td style="text-align: center;">2</td>
-<td style="text-align: center;">nsupervisores</td>
-<td style="text-align: center;">7.2610</td>
-<td style="text-align: center;">0.5400</td>
+<td style="text-align: center;">ntrabalhadores</td>
+<td style="text-align: center;">0.1210</td>
+<td style="text-align: center;">0.0090</td>
 <td style="text-align: center;">13.4454</td>
 <td style="text-align: center;">0.0000</td>
 <td style="text-align: center;">NA</td>
@@ -566,17 +569,17 @@ X = \begin{bmatrix}
 <tr class="odd">
 <td style="text-align: center;">3</td>
 <td style="text-align: center;">(Intercept)</td>
-<td style="text-align: center;">32.8318</td>
-<td style="text-align: center;">27.1905</td>
-<td style="text-align: center;">1.2075</td>
-<td style="text-align: center;">0.2385</td>
+<td style="text-align: center;">1.5628</td>
+<td style="text-align: center;">3.7468</td>
+<td style="text-align: center;">0.4171</td>
+<td style="text-align: center;">0.6802</td>
 <td style="text-align: center;">0.8792</td>
 </tr>
 <tr class="even">
 <td style="text-align: center;">3</td>
-<td style="text-align: center;">nsupervisores</td>
-<td style="text-align: center;">6.9761</td>
-<td style="text-align: center;">0.5171</td>
+<td style="text-align: center;">ntrabalhadores</td>
+<td style="text-align: center;">0.1260</td>
+<td style="text-align: center;">0.0093</td>
 <td style="text-align: center;">13.4912</td>
 <td style="text-align: center;">0.0000</td>
 <td style="text-align: center;">NA</td>
@@ -587,7 +590,7 @@ X = \begin{bmatrix}
 
 </div>
 </div>
-<p>De fato, observa-se que o modelo transformado explica em torno de 20% a mais de variância do que o modelo não transformado, para qualquer valor de <span class="math inline">p</span> dentre os disponíveis.</p>
+<p>De fato, observa-se que o modelo transformado explica em torno de 7% a mais de variância do que o modelo não transformado, para qualquer valor de <span class="math inline">p</span> dentre os disponíveis.</p>
 <p>Os gráficos de resposta ajustada versus resíduos Studentizados e gráficos normais de probabilidade dos resíduos Studentizados com envelope simulado são expostos a seguir. De fato, utilizando <span class="math inline">p = 3</span> parece resultar em melhor comportamento dos resíduos, mas não é possível concluir nada sobre <span class="math inline">p=2</span>.</p>
 <div class="cell">
 <details>
@@ -625,7 +628,7 @@ X = \begin{bmatrix}
 <p><img src="questao2_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Quanto à avaliação da normalidade, utilizando os gráficos de envelope simulado a seguir, <span class="math inline">p=3</span> parece resultar na pior opção, enquanto <span class="math inline">p=2</span> parece resultar na melhor opção.</p>
+<p>Quanto à avaliação da normalidade, utilizando os gráficos de envelope simulado a seguir, <span class="math inline">p=3</span> parece resultar na melhor opção.</p>
 <div class="cell">
 <details>
 <summary>Code</summary>
@@ -638,7 +641,47 @@ X = \begin{bmatrix}
 <p><img src="questao2_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Considerando as possiblidades apontadas, opta-se pelo modelo em que <span class="math inline">p=2</span>.</p>
+<p>Considerando as possiblidades apontadas, opta-se pelo modelo em que <span class="math inline">p=3</span>.</p>
+</section>
+<section id="interpretação-dos-coeficientes-estimados" class="level3">
+<h3 class="anchored" data-anchor-id="interpretação-dos-coeficientes-estimados">Interpretação dos coeficientes estimados</h3>
+<p>Tendo-se optado por <span class="math inline">p=3</span>, obtemos <span class="math inline">\beta_1 =</span> 0.13. Isto significa que o acréscimo de cada trabalhador implicaria no acrescimo de 0.13 supervisor ou, para uma compreensão mais clara, haveria o acréscimo de um supervisor a cada 7.93 trabalhadores.</p>
+</section>
+<section id="intervalo-confiança" class="level3">
+<h3 class="anchored" data-anchor-id="intervalo-confiança">Intervalo confiança</h3>
+<p>Construimos um intervalo de confiança para <span class="math inline">\hat{\beta_G}</span> sob a condição.</p>
+<p><span class="math display">
+\hat{\beta_G} \sim N(\beta, \sigma^2(X^{\top}V^{-1}X)^{-1})
+</span> E obtemos o seguinte intervalo de confiança:</p>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># X &lt;- matrix(c(rep(1, 27),supervisores$ntrabalhadores), ncol = 2)</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co"># V_1 &lt;- solve(diag(supervisores$ntrabalhadores^3))</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co"># P_1 &lt;- diag(1/sqrt(supervisores$ntrabalhadores^3))</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Q &lt;- P_1 %*% X</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Y &lt;- supervisores$nsupervisores</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="co"># betaG &lt;- solve(t(X)%*%V_1%*%X) %*% t(X) %*% V_1 %*% supervisores$nsupervisores</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="co"># xtxInv &lt;- solve(t(X) %*% V_1 %*% X)</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Zhat &lt;- fitted(fit_w3)</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Z &lt;- P_1 %*% Y</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a><span class="co"># sqres &lt;- sum((Z[,1]-Zhat)^2) #????</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a><span class="co"># (confint(fit_w2, level = .9) %&gt;% as_tibble())[2,]</span></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a><span class="co"># t(Y)%*%V_1%*%Y</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="análise-de-variância" class="level3">
+<h3 class="anchored" data-anchor-id="análise-de-variância">Análise de variância</h3>
 
 
 </section>

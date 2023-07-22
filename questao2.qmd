@@ -150,18 +150,18 @@ X = \begin{bmatrix}
 1 & x_n
 \end{bmatrix} \quad \Rightarrow \quad Q = \begin{bmatrix}
 \frac{1}{\sqrt{x_1^p}} & \frac{x_1}{\sqrt{x_1^p}}\\
-\frac{1}{\sqrt{x_2^p}} & \frac{x_2}{\sqrt{x_1^p}} \\
+\frac{1}{\sqrt{x_2^p}} & \frac{x_2}{\sqrt{x_2^p}} \\
 \vdots & \vdots \\
-\frac{1}{\sqrt{x_2^p}} & \frac{x_n}{\sqrt{x_1^p}}
+\frac{1}{\sqrt{x_3^p}} & \frac{x_n}{\sqrt{x_3^p}}
 \end{bmatrix}
 $$
 
-que não possui um termo constante, portanto não possui intercepto. Os novos modelos são ajustados utilizando a mesma função `lm()`, porém ajustando o argumento `weights =` $1/(ntrabalhadores)^p$. A tabela com os estimadores e suas características para os modelos sem intercepto são expostas a seguir.
+que não possui um termo constante, portanto não possui intercepto. Os novos modelos são ajustados utilizando a mesma função `lm()`, porém ajustando o argumento `weights` = $1/(ntrabalhadores)^p$. A tabela com os estimadores e suas características para os modelos sem intercepto são expostas a seguir.
 
 ```{r}
-fit_w1 <- lm(ntrabalhadores ~ nsupervisores, weights = 1/(ntrabalhadores)^1, data = supervisores)
-fit_w2 <- lm(ntrabalhadores ~ nsupervisores, weights = 1/(ntrabalhadores)^2, data = supervisores)
-fit_w3 <- lm(ntrabalhadores ~ nsupervisores, weights = 1/(ntrabalhadores)^3, data = supervisores)
+fit_w1 <- lm(nsupervisores ~ ntrabalhadores, weights = 1/(ntrabalhadores)^1, data = supervisores)
+fit_w2 <- lm(nsupervisores ~ ntrabalhadores, weights = 1/(ntrabalhadores)^2, data = supervisores)
+fit_w3 <- lm(nsupervisores ~ ntrabalhadores, weights = 1/(ntrabalhadores)^3, data = supervisores)
 
 
 bind_rows(tidy(fit_w1), tidy(fit_w2), tidy(fit_w3)) %>%
@@ -186,7 +186,7 @@ bind_rows(tidy(fit_w1), tidy(fit_w2), tidy(fit_w3)) %>%
       stripe_color = "gray!15")
 ```
 
-De fato, observa-se que o modelo transformado explica em torno de 20% a mais de variância do que o modelo não transformado, para qualquer valor de $p$ dentre os disponíveis.
+De fato, observa-se que o modelo transformado explica em torno de 7% a mais de variância do que o modelo não transformado, para qualquer valor de $p$ dentre os disponíveis.
 
 Os gráficos de resposta ajustada versus resíduos Studentizados e gráficos normais de probabilidade dos resíduos Studentizados com envelope simulado são expostos a seguir. De fato, utilizando $p = 3$ parece resultar em melhor comportamento dos resíduos, mas não é possível concluir nada sobre $p=2$.
 
@@ -222,7 +222,7 @@ plot_grid(ajuste1, ajuste2,ajuste3)
 
 ```
 
-Quanto à avaliação da normalidade, utilizando os gráficos de envelope simulado a seguir, $p=3$ parece resultar na pior opção, enquanto $p=2$ parece resultar na melhor opção.
+Quanto à avaliação da normalidade, utilizando os gráficos de envelope simulado a seguir, $p=3$ parece resultar na melhor opção.
 
 ```{r}
 par(mfrow = c(2,2))
@@ -231,9 +231,45 @@ envelope_LR(fit_w2, OLS = F, main.title = "Resíduos com envelope - p = 2")
 envelope_LR(fit_w3, OLS = F, main.title = "Resíduos com envelope - p = 3")
 ```
 
-Considerando as possiblidades apontadas, opta-se pelo modelo em que $p=2$.
+Considerando as possiblidades apontadas, opta-se pelo modelo em que $p=3$.
 
 
+### Interpretação dos coeficientes estimados
+
+Tendo-se optado por $p=3$, obtemos $\beta_1 =$ `r round(coef(fit_w3)[2],2)`. Isto significa que o acréscimo de cada trabalhador implicaria no acrescimo de `r round(coef(fit_w3)[2],2)` supervisor ou, para uma compreensão mais clara, haveria o acréscimo de um supervisor a cada `r round(1/(coef(fit_w3)[2]),2)` trabalhadores.
 
 
+### Intervalo confiança
 
+Construimos um intervalo de confiança para $\hat{\beta_G}$ sob a condição.
+
+$$
+\hat{\beta_G} \sim N(\beta, \sigma^2(X^{\top}V^{-1}X)^{-1})
+$$
+E obtemos o seguinte intervalo de confiança:
+```{r}
+# X <- matrix(c(rep(1, 27),supervisores$ntrabalhadores), ncol = 2)
+# V_1 <- solve(diag(supervisores$ntrabalhadores^3))
+# 
+# P_1 <- diag(1/sqrt(supervisores$ntrabalhadores^3))
+# 
+# Q <- P_1 %*% X
+# 
+# Y <- supervisores$nsupervisores
+# 
+# betaG <- solve(t(X)%*%V_1%*%X) %*% t(X) %*% V_1 %*% supervisores$nsupervisores
+# 
+# xtxInv <- solve(t(X) %*% V_1 %*% X)
+# 
+# Zhat <- fitted(fit_w3)
+# Z <- P_1 %*% Y
+# 
+# sqres <- sum((Z[,1]-Zhat)^2) #????
+# 
+# (confint(fit_w2, level = .9) %>% as_tibble())[2,]
+# 
+# t(Y)%*%V_1%*%Y
+```
+
+
+### Análise de variância
